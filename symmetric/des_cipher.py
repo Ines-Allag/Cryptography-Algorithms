@@ -23,19 +23,12 @@ BLOCK_SIZE = 8   # DES : bloc 64 bits = 8 octets
 # ─────────────────────────────────────────────────────────────────────────────
 
 def des_generate_key() -> bytes:
-    """Génère une clé DES aléatoire de 8 octets (56 bits effectifs)."""
-    return DES.adjust_key_parity(os.urandom(8))
-
+    return os.urandom(8)
 
 def tdes_generate_key(key_size: int = 24) -> bytes:
-    """
-    Génère une clé 3DES.
-    key_size=16 → 2-key 3DES (112 bits)
-    key_size=24 → 3-key 3DES (168 bits)
-    """
     if key_size not in (16, 24):
         raise ValueError("Clé 3DES : 16 ou 24 octets uniquement")
-    return DES3.adjust_key_parity(os.urandom(key_size))
+    return os.urandom(key_size)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

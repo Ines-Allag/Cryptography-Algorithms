@@ -688,10 +688,8 @@ class HillPanel(tk.Frame):
 
     def _dec(self):
         try:
-            from hill import chiffrer_hill, dechiffrer_hill
-            enc = chiffrer_hill(self._txt.get(), self.CLE_2x2)
-            dec = dechiffrer_hill(enc, self.CLE_2x2)
-            _append(self._log, f"[{now()}] Chiffré   : {enc}", "warn")
+            from hill import dechiffrer_hill
+            dec = dechiffrer_hill(self._txt.get(), self.CLE_2x2)
             _append(self._log, f"[{now()}] Déchiffré : {dec}", "ok")
         except ImportError:
             _append(self._log, "⚠ Module hill.py non trouvé.", "err")
@@ -1107,8 +1105,7 @@ class AESPanel(tk.Frame):
     def _enc(self):
         try:
             from aes_cipher import encrypt_text
-            self._params = encrypt_text(self._txt.get(), mode=self._mode.get(),
-                                        key_size=int(self._ks.get()))
+            self._params = encrypt_text(self._txt.get(), mode=self._mode.get())
             _append(self._log, f"[{now()}] Mode : AES-{self._ks.get()}-{self._mode.get()}", "info")
             _append(self._log, f"[{now()}] Clé  : {self._params['key'].hex()[:32]}…", "key")
             _append(self._log, f"[{now()}] CT   : {self._params['ciphertext'].hex()[:48]}…", "ok")
@@ -1163,7 +1160,7 @@ class AESPanel(tk.Frame):
 # ═══════════════════════════════════════════════════════════════════════════
 
 class AsymmetricSection(tk.Frame):
-    ALGOS = ["RSA", "Diffie-Hellman", "ElGamal", "ECC"]
+    ALGOS = ["RSA", "Diffie-Hellman", "ElGamal"]
 
     def __init__(self, master, app: App):
         super().__init__(master, bg=K)
@@ -1172,7 +1169,7 @@ class AsymmetricSection(tk.Frame):
 
     def _build(self):
         _section_hdr(self, "🗝", "Chiffrement Asymétrique",
-                     "RSA · Diffie-Hellman · ElGamal · ECC — échange de clés et chiffrement")
+                     "RSA · Diffie-Hellman · ElGamal")
 
         sel_bar = tk.Frame(self, bg=S, padx=20, pady=10)
         sel_bar.pack(fill="x")
@@ -1808,7 +1805,7 @@ class SignatureSection(tk.Frame):
         _btn(btnrow, "Signer", self._sign).pack(side="left")
         _btn(btnrow, "Vérifier (original)", self._verify, accent=MUT).pack(side="left", padx=(6,0))
         _btn(btnrow, "Vérifier (altéré)", self._verify_tampered, accent=ERR).pack(side="left", padx=(6,0))
-        _btn(btnrow, "ElGamal Signature", self._elgamal_sign, accent=SEL).pack(side="left", padx=(6,0))
+
 
         self._log = _log(lf, height=18)
         self._log.pack(fill="both", expand=True, padx=8, pady=(4, 4))
