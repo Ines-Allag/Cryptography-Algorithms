@@ -539,8 +539,31 @@ class CesarPanel(tk.Frame):
 
     def _encrypt(self): self._run_cesar("enc")
     def _decrypt(self): self._run_cesar("dec")
-    def _brute(self):   self._run_cesar("brute")
-    def _ic(self):      self._run_cesar("ic")
+
+    def _brute(self):
+        try:
+            from cesar import force_brute_cesar
+            crypto = self._txt.get()  # ← utiliser directement le texte entré
+            _append(self._log, f"[{now()}] Force brute sur : {crypto}", "warn")
+            for ki, score, texte in force_brute_cesar(crypto, top_n=5):
+                _append(self._log, f"  k={ki:2d}  score={score:.3f}  → {texte[:50]}", "info")
+        except ImportError:
+            _append(self._log, "⚠ Module cesar.py non trouvé.", "err")
+        except Exception as e:
+            _append(self._log, f"Erreur : {e}", "err")
+
+    def _ic(self):
+        try:
+            from cesar import analyse_complete_cesar
+            crypto = self._txt.get()  # ← directement sans rechiffrer
+            res = analyse_complete_cesar(crypto)
+            _append(self._log, f"[{now()}] IC = {res['ic']:.4f}  (français ≈ 0.074)", "key")
+            _append(self._log, f"  Clé probable : k = {res['k_par_frequences']}", "ok")
+            _append(self._log, f"  Déchiffré    : {res['dechiffre_freq'][:60]}", "ok")
+        except ImportError:
+            _append(self._log, "⚠ Module cesar.py non trouvé.", "err")
+        except Exception as e:
+            _append(self._log, f"Erreur : {e}", "err")
 
 
 class VigenerePanel(tk.Frame):
@@ -2415,12 +2438,14 @@ class UDPSection(tk.Frame):
         ct, nonce, tag = aes_enc(msg.encode(), self._group_key)
         frame = name.encode().ljust(16, b"\x00") + nonce + tag + ct
         for _, port, _ in self.USERS:
-            if port != my_port:
-                try:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    s.sendto(frame, ("127.0.0.1", port)); s.close()
-                except: pass
-        self._mq.put(("msg", name, msg, color))
+            # ← envoie à TOUS les ports y compris le sien
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.sendto(frame, ("127.0.0.1", port));
+                s.close()
+            except:
+                pass
+        # ← supprimer le self._mq.put() direct
         self._umsg.set("")
 
     def _poll(self):
